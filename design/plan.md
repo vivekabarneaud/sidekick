@@ -74,9 +74,9 @@ This page shows the totals and the progress.
   - the totals (today, this week, all time),
   - the best result (for example: "Longest hold: 34 s, 12 March"),
   - a chart of the weekly totals.
-- **Comparison:** "This week: 140 reps. The same week 4 weeks ago: 95 reps."
+- **Comparison:** the app compares "Monday until now" with the same days and hours 4 weeks ago. The current week is not finished, so a comparison with a full week is not fair. When the number is lower, the app shows the two numbers in a neutral color, never in red.
 
-The charts use a 7-day rolling average. Thus, one bad day does not look like a big drop.
+The charts show weekly totals for the last 8 weeks, as columns. A weekly total already makes the line smooth. Thus, one bad day does not look like a big drop. The user pushes a column to see its value.
 
 ## 5. Measure types
 

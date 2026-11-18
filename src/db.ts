@@ -152,6 +152,12 @@ export async function addLog(l: Omit<Log, 'id' | 'logged_at'>): Promise<number> 
   return r.lastInsertRowId;
 }
 
+/** All the logs, oldest first. The totals page calculates everything from them. */
+export async function allLogs(): Promise<Log[]> {
+  const d = await db();
+  return d.getAllAsync<Log>('SELECT * FROM logs ORDER BY logged_at');
+}
+
 export async function deleteLog(id: number) {
   const d = await db();
   await d.runAsync('DELETE FROM logs WHERE id = ?', id);

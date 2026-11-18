@@ -77,14 +77,23 @@ export default function FastLog() {
     <View style={[s.page, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <Text style={s.title}>Today</Text>
-        <Pressable
+        <View style={s.actions}>
+          <Pressable
+            onPress={() => router.push('/totals')}
+            style={({ pressed }) => [s.totals, pressed && s.pressed]}
+            hitSlop={8}
+          >
+            <Text style={s.totalsText}>Totals</Text>
+          </Pressable>
+          <Pressable
           onPress={() => router.push('/card/new')}
           style={({ pressed }) => [s.add, pressed && s.pressed]}
           accessibilityLabel="New card"
           hitSlop={8}
         >
-          <Text style={s.addText}>+</Text>
-        </Pressable>
+            <Text style={s.addText}>+</Text>
+          </Pressable>
+        </View>
       </View>
 
       {rows && rows.length === 0 ? (
@@ -172,6 +181,16 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  totals: {
+    height: 48,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    backgroundColor: c.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  totalsText: { color: c.ink, fontSize: 16, fontWeight: '700' },
   addText: { color: c.accentInk, fontSize: 28, fontWeight: '600', marginTop: -2 },
   pressed: { opacity: 0.6 },
   card: {
