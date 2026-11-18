@@ -10,9 +10,25 @@
     "android": {
       "package": "com.viveka.sidekick",
       "edgeToEdgeEnabled": true,
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "plugins": ["expo-router", "expo-sqlite", "expo-status-bar", "expo-splash-screen"],
-    "experiments": { "typedRoutes": true }
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-status-bar",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "vivekabarneaud",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "336aa13b-257a-4a9a-8508-91bb82b1110d"
+      }
+    }
   }
 }
