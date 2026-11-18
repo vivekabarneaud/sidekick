@@ -1,0 +1,18 @@
+[
+  { "key": "wall-push-up", "name": "Wall push-up", "measure": "reps", "tags": ["arms", "chest"] },
+  { "key": "sit-to-stand", "name": "Sit-to-stand from a chair", "measure": "reps", "tags": ["legs"] },
+  { "key": "seated-leg-lift", "name": "Seated leg lift", "measure": "reps_time", "tags": ["legs"] },
+  { "key": "glute-bridge", "name": "Glute bridge", "measure": "reps_time", "tags": ["legs", "back"] },
+  { "key": "wall-sit", "name": "Wall sit", "measure": "time", "tags": ["legs"] },
+  { "key": "knee-plank", "name": "Plank on the knees", "measure": "time", "tags": ["core"] },
+  { "key": "calf-raise", "name": "Calf raise", "measure": "reps", "tags": ["legs"] },
+  { "key": "standing-march", "name": "Standing march", "measure": "reps", "tags": ["legs", "balance"] },
+  { "key": "shoulder-blade-squeeze", "name": "Shoulder blade squeeze", "measure": "reps_time", "tags": ["back"] },
+  { "key": "chin-tuck", "name": "Chin tuck", "measure": "reps_time", "tags": ["neck"] },
+  { "key": "bird-dog", "name": "Bird dog", "measure": "reps_time", "tags": ["core", "back", "balance"] },
+  { "key": "dead-bug", "name": "Dead bug", "measure": "reps", "tags": ["core"] },
+  { "key": "arm-circles", "name": "Arm circles", "measure": "reps", "tags": ["arms", "shoulders"] },
+  { "key": "heel-slide", "name": "Heel slide", "measure": "reps", "tags": ["legs"] },
+  { "key": "side-leg-lift", "name": "Side leg lift", "measure": "reps", "tags": ["legs", "hips"] },
+  { "key": "single-leg-stand", "name": "Stand on one leg", "measure": "time", "tags": ["balance"] }
+]
