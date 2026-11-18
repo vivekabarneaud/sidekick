@@ -22,4 +22,7 @@ export const CARD_COLORS = [
   '#8C9BE0',
 ];
 
-export const GRID = { pad: 14, gutter: 12, columns: 2 };
+export const GRID = { pad: 14, gutter: 10, columns: 2 };
+
+/** The compact card on the fast log page (design B on the canvas). */
+export const CARD = { height: 64, image: 44 };

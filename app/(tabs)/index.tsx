@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CardImage } from '../src/CardImage';
-import { deleteLog, listExercises, type Exercise, type ExerciseRow } from '../src/db';
-import { LogPanel, type Saved } from '../src/LogPanel';
-import { DEFAULT_SETTINGS, formatSeconds, loadSettings, type InputSettings } from '../src/measure';
-import { c, GRID } from '../src/theme';
+import { CardImage } from '../../src/CardImage';
+import { deleteLog, listExercises, type Exercise, type ExerciseRow } from '../../src/db';
+import { LogPanel, type Saved } from '../../src/LogPanel';
+import { DEFAULT_SETTINGS, loadSettings, type InputSettings } from '../../src/measure';
+import { c, CARD, GRID } from '../../src/theme';
 
 const UNDO_MS = 6000;
 
@@ -77,23 +77,14 @@ export default function FastLog() {
     <View style={[s.page, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <Text style={s.title}>Today</Text>
-        <View style={s.actions}>
-          <Pressable
-            onPress={() => router.push('/totals')}
-            style={({ pressed }) => [s.totals, pressed && s.pressed]}
-            hitSlop={8}
-          >
-            <Text style={s.totalsText}>Totals</Text>
-          </Pressable>
-          <Pressable
+        <Pressable
           onPress={() => router.push('/card/new')}
           style={({ pressed }) => [s.add, pressed && s.pressed]}
           accessibilityLabel="New card"
           hitSlop={8}
         >
-            <Text style={s.addText}>+</Text>
-          </Pressable>
-        </View>
+          <Text style={s.addText}>+</Text>
+        </Pressable>
       </View>
 
       {rows && rows.length === 0 ? (
@@ -116,7 +107,7 @@ export default function FastLog() {
           contentContainerStyle={{
             padding: GRID.pad,
             gap: GRID.gutter,
-            paddingBottom: insets.bottom + 96,
+            paddingBottom: 96,
           }}
           columnWrapperStyle={{ gap: GRID.gutter }}
           renderItem={({ item }) => (
@@ -124,12 +115,9 @@ export default function FastLog() {
               onPress={() => setOpen(item)}
               style={({ pressed }) => [s.card, { width: tile }, pressed && s.pressed]}
             >
-              <CardImage exercise={item} size={tile * 0.42} />
+              <CardImage exercise={item} size={CARD.image} />
               <Text style={s.cardName} numberOfLines={2}>
                 {item.name}
-              </Text>
-              <Text style={s.cardToday} numberOfLines={1}>
-                {todayLine(item)}
               </Text>
             </Pressable>
           )}
@@ -137,7 +125,7 @@ export default function FastLog() {
       )}
 
       {toast ? (
-        <View style={[s.toast, { bottom: insets.bottom + 16 }]}>
+        <View style={[s.toast, { bottom: 16 }]}>
           <Text style={s.toastText} numberOfLines={2}>
             Saved. {toast.summary}
           </Text>
@@ -155,11 +143,6 @@ export default function FastLog() {
       />
     </View>
   );
-}
-
-function todayLine(r: ExerciseRow) {
-  if (r.measure === 'time') return r.seconds_since ? `Today: ${formatSeconds(r.seconds_since)}` : ' ';
-  return r.reps_since ? `Today: ${r.reps_since} reps` : ' ';
 }
 
 const s = StyleSheet.create({
@@ -181,27 +164,20 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  totals: {
-    height: 48,
-    paddingHorizontal: 18,
-    borderRadius: 24,
-    backgroundColor: c.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  totalsText: { color: c.ink, fontSize: 16, fontWeight: '700' },
   addText: { color: c.accentInk, fontSize: 28, fontWeight: '600', marginTop: -2 },
   pressed: { opacity: 0.6 },
+  // The compact card: the image with the name next to it, and no other text.
   card: {
-    backgroundColor: c.surface,
-    borderRadius: 20,
-    padding: 16,
+    height: CARD.height,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    alignItems: 'flex-start',
+    paddingLeft: 10,
+    paddingRight: 12,
+    backgroundColor: c.surface,
+    borderRadius: 16,
   },
-  cardName: { fontSize: 17, fontWeight: '700', color: c.ink, minHeight: 44 },
-  cardToday: { fontSize: 14, color: c.muted },
+  cardName: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '700', color: c.ink },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 },
   emptyTitle: { fontSize: 22, fontWeight: '700', color: c.ink },
   emptyBody: { fontSize: 16, lineHeight: 24, color: c.muted, textAlign: 'center' },

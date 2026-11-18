@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CardImage } from '../src/CardImage';
-import { longDate, startOfDay, startOfMonth } from '../src/dates';
-import { allLogs, listExercises, type ExerciseRow, type Log } from '../src/db';
-import { formatSeconds, type Measure } from '../src/measure';
+import { CardImage } from '../../src/CardImage';
+import { longDate, startOfDay, startOfMonth } from '../../src/dates';
+import { allLogs, listExercises, type ExerciseRow, type Log } from '../../src/db';
+import { formatSeconds, type Measure } from '../../src/measure';
 import {
   activeDays,
   bests,
@@ -16,9 +16,9 @@ import {
   weekly,
   weekStarts,
   type Totals,
-} from '../src/stats';
-import { c } from '../src/theme';
-import { WeeklyColumns } from '../src/WeeklyColumns';
+} from '../../src/stats';
+import { c } from '../../src/theme';
+import { WeeklyColumns } from '../../src/WeeklyColumns';
 
 const WEEKS = 8;
 
@@ -56,11 +56,7 @@ export default function TotalsPage() {
   return (
     <View style={[s.page, { paddingTop: insets.top }]}>
       <View style={s.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={s.back}>‹ Back</Text>
-        </Pressable>
         <Text style={s.title}>Totals</Text>
-        <View style={{ width: 56 }} />
       </View>
 
       {data ? (
@@ -72,7 +68,7 @@ export default function TotalsPage() {
             </Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={[s.body, { paddingBottom: insets.bottom + 32 }]}>
+          <ScrollView contentContainerStyle={[s.body, { paddingBottom: 32 }]}>
             <Overview data={data} />
             {data.exercises
               .filter((e) => data.logs.some((l) => l.exercise_id === e.id))
@@ -221,15 +217,8 @@ function Small({ label, value }: { label: string; value: string }) {
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: c.ground },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  back: { fontSize: 16, color: c.accent, width: 56 },
-  title: { fontSize: 18, fontWeight: '700', color: c.ink },
+  header: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 4, minHeight: 64, justifyContent: 'center' },
+  title: { fontSize: 30, fontWeight: '800', color: c.ink },
   body: { padding: 14, gap: 14 },
   section: { backgroundColor: c.surface, borderRadius: 20, padding: 16, gap: 12 },
   tiles: { flexDirection: 'row', gap: 12 },

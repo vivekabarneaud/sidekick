@@ -14,5 +14,13 @@
   { "key": "arm-circles", "name": "Arm circles", "measure": "reps", "tags": ["arms", "shoulders"] },
   { "key": "heel-slide", "name": "Heel slide", "measure": "reps", "tags": ["legs"] },
   { "key": "side-leg-lift", "name": "Side leg lift", "measure": "reps", "tags": ["legs", "hips"] },
-  { "key": "single-leg-stand", "name": "Stand on one leg", "measure": "time", "tags": ["balance"] }
+  { "key": "single-leg-stand", "name": "Stand on one leg", "measure": "time", "tags": ["balance"] },
+  { "key": "bicycle-crunch", "name": "Bicycle crunch", "measure": "reps", "tags": ["core"] },
+  { "key": "clamshell", "name": "Clamshell", "measure": "reps", "tags": ["hips", "legs"] },
+  { "key": "single-leg-hip-raise", "name": "Single-leg hip raise", "measure": "reps_time", "tags": ["legs", "back"] },
+  { "key": "plank", "name": "Plank", "measure": "time", "tags": ["core"] },
+  { "key": "standing-cross-toe-touch", "name": "Standing cross toe touch", "measure": "reps", "tags": ["core", "legs", "balance"] },
+  { "key": "squat", "name": "Squat", "measure": "reps", "tags": ["legs"] },
+  { "key": "sumo-squat", "name": "Sumo squat", "measure": "reps", "tags": ["legs", "hips"] },
+  { "key": "single-leg-stand-eyes-closed", "name": "Stand on one leg, eyes closed", "measure": "time", "tags": ["balance"] }
 ]
