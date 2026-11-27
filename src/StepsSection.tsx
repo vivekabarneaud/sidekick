@@ -1,46 +1,53 @@
 import { useCallback, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { longDate, startOfWeek } from './dates';
-import {
-  connect,
-  healthState,
-  openSettings,
-  runs,
-  stepsToday,
-  weeklySteps,
-  type HealthState,
-  type Run,
-} from './health';
+import { addDays, longDate, startOfDay, startOfWeek } from './dates';
+import { runsBetween, saveRunEvents, type Run } from './runs';
 import { weekStarts } from './stats';
+import { firstSampleAt, sample, samplesSince, startCounting, stepsIn, stepsState, type Sample, type StepsState } from './steps';
 import { c } from './theme';
 import { WeeklyColumns } from './WeeklyColumns';
 
 const WEEKS = 8;
-const PLAY_STORE = 'market://details?id=com.google.android.apps.healthdata';
 
-type Data = { today: number; weeks: number[]; starts: number[]; runs: Run[]; now: number };
+type Data = {
+  today: number;
+  weeks: number[];
+  starts: number[];
+  since: number | null;
+  runs: Run[];
+  now: number;
+  /** Only for the development build: the samples of today. */
+  debug: string;
+};
 
 const n = (v: number) => v.toLocaleString('en-GB');
 
-/** The steps and the runs from Health Connect, at the top of the totals page. */
+/** The steps and the runs that Sidekick records, at the top of the totals page. */
 export function StepsSection() {
-  const [state, setState] = useState<HealthState | null>(null);
+  const [state, setState] = useState<StepsState | null>(null);
   const [data, setData] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
 
-  const load = useCallback(async (s: HealthState) => {
+  const load = useCallback(async (s: StepsState) => {
     setState(s);
     if (s !== 'on') return;
-    const now = Date.now();
-    const starts = weekStarts(WEEKS, now);
     try {
-      const [today, weeks, r] = await Promise.all([
-        stepsToday(now),
-        weeklySteps(starts, now),
-        runs(startOfWeek(now), now),
-      ]);
-      setData({ today, weeks, starts, runs: r, now });
+      // A new sample first. Then the total for today includes the last steps.
+      await sample();
+      await saveRunEvents();
+      const now = Date.now();
+      const starts = weekStarts(WEEKS, now);
+      const samples = await samplesSince(starts[0]);
+      setData({
+        today: stepsIn(samples, startOfDay(now), now),
+        weeks: starts.map((st) => stepsIn(samples, st, addDays(st, 7))),
+        starts,
+        since: await firstSampleAt(),
+        runs: await runsBetween(startOfWeek(now), now),
+        now,
+        debug: debugText(samples, now),
+      });
       setFailed(false);
     } catch (e) {
       console.warn('Could not read the steps', e);
@@ -49,39 +56,44 @@ export function StepsSection() {
   }, []);
 
   // Read again each time that the page opens. The user can walk between two visits.
+  // Also read again when the app comes back to the front, and every minute
+  // while the page is open.
   useFocusEffect(
     useCallback(() => {
-      void healthState().then(load);
+      const reload = () => void stepsState().then(load);
+      reload();
+      const timer = setInterval(reload, 60 * 1000);
+      const sub = AppState.addEventListener('change', (st) => {
+        if (st === 'active') reload();
+      });
+      return () => {
+        clearInterval(timer);
+        sub.remove();
+      };
     }, [load]),
   );
 
-  const onConnect = async () => {
+  const onStart = async () => {
     try {
-      await load(await connect());
+      await load(await startCounting());
     } catch (e) {
-      console.warn('Could not ask for the permission', e);
+      console.warn('Could not start to count the steps', e);
     }
   };
 
-  // Expo Go does not contain Health Connect. We show nothing.
+  // Expo Go, or a phone without a step sensor.
   if (state === null || state === 'missing') return null;
 
-  if (state !== 'on') {
-    const text = {
-      install: 'Sidekick reads your steps from Health Connect. Install Health Connect from the Play Store first.',
-      update: 'Sidekick reads your steps from Health Connect. Update Health Connect from the Play Store first.',
-      off: 'Sidekick can show your steps and your runs. It reads them from Health Connect, on your phone. Your data does not leave the phone.',
-    }[state];
-    const button =
-      state === 'off'
-        ? { label: 'Show my steps', onPress: onConnect }
-        : { label: 'Open the Play Store', onPress: () => void Linking.openURL(PLAY_STORE) };
+  if (state === 'off') {
     return (
       <View style={s.section}>
         <Text style={s.title}>Steps</Text>
-        <Text style={s.body}>{text}</Text>
-        <Pressable style={s.button} onPress={button.onPress} accessibilityRole="button">
-          <Text style={s.buttonText}>{button.label}</Text>
+        <Text style={s.body}>
+          Sidekick can count your steps and find your runs. It starts when you push the button. This data does
+          not leave the phone.
+        </Text>
+        <Pressable style={s.button} onPress={onStart} accessibilityRole="button">
+          <Text style={s.buttonText}>Count my steps and runs</Text>
         </Pressable>
       </View>
     );
@@ -99,7 +111,7 @@ export function StepsSection() {
   if (!data) return null;
 
   const week = data.weeks[data.weeks.length - 1];
-  const runMinutes = data.runs.reduce((a, r) => a + r.minutes, 0);
+  const showSince = data.since !== null && data.since > data.starts[0];
 
   return (
     <View style={s.section}>
@@ -108,12 +120,6 @@ export function StepsSection() {
         <Tile label="Steps today" value={n(data.today)} />
         <Tile label="Steps this week" value={n(week)} />
       </View>
-
-      {data.runs.length > 0 ? (
-        <Text style={s.runs}>
-          {data.runs.length === 1 ? '1 run' : `${data.runs.length} runs`} this week, {runMinutes} min in total
-        </Text>
-      ) : null}
 
       <Text style={s.chartTitle}>Steps each week, last {WEEKS} weeks</Text>
       <WeeklyColumns
@@ -124,11 +130,31 @@ export function StepsSection() {
           .map((v, i) => `Week of ${longDate(data.starts[i], data.now)}: ${n(v)} steps`)
           .join('. ')}`}
       />
+      {showSince ? <Text style={s.note}>Sidekick counts your steps since {longDate(data.since!, data.now)}.</Text> : null}
 
-      <Pressable onPress={openSettings} accessibilityRole="button" hitSlop={8}>
-        <Text style={s.link}>Change the permissions in Health Connect</Text>
-      </Pressable>
+      <Runs list={data.runs} />
+      {__DEV__ ? <Text style={s.note}>{data.debug}</Text> : null}
     </View>
+  );
+}
+
+/** "Today: 5 samples. Last: 12,345 at 14:02." Shows in the development build only. */
+function debugText(samples: Sample[], now: number) {
+  const today = samples.filter((x) => x.at >= startOfDay(now));
+  const last = samples[samples.length - 1];
+  if (!last) return 'No samples. The step sensor gave no value.';
+  const time = new Date(last.at).toTimeString().slice(0, 5);
+  return `Today: ${today.length} samples. Last sensor value: ${n(last.counter)} at ${time}.`;
+}
+
+/** The runs of this week. */
+function Runs({ list }: { list: Run[] }) {
+  if (list.length === 0) return null;
+  const minutes = list.reduce((a, r) => a + r.minutes, 0);
+  return (
+    <Text style={s.runs}>
+      {list.length === 1 ? '1 run' : `${list.length} runs`} this week, {minutes} min in total
+    </Text>
   );
 }
 
@@ -158,7 +184,7 @@ const s = StyleSheet.create({
   tile: { flex: 1, gap: 4 },
   tileLabel: { fontSize: 13, color: c.muted },
   tileValue: { fontSize: 28, fontWeight: '700', color: c.ink },
-  runs: { fontSize: 15, color: c.ink },
   chartTitle: { fontSize: 13, color: c.muted, marginTop: 4 },
-  link: { fontSize: 14, color: c.accent, fontWeight: '600' },
+  note: { fontSize: 13, color: c.muted },
+  runs: { fontSize: 15, color: c.ink },
 });

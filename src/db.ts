@@ -30,7 +30,7 @@ export type Log = {
 };
 
 let handle: Promise<SQLite.SQLiteDatabase> | null = null;
-function db() {
+export function db() {
   if (!handle) handle = SQLite.openDatabaseAsync('sidekick.db');
   return handle;
 }

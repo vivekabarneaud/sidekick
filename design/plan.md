@@ -78,6 +78,16 @@ This page shows the totals and the progress.
 
 The charts show weekly totals for the last 8 weeks, as columns. A weekly total already makes the line smooth. Thus, one bad day does not look like a big drop. The user pushes a column to see its value.
 
+### 4.4 Steps and runs
+
+The totals page starts with a card for the steps and the runs.
+
+- The user pushes "Count my steps and runs" and gives the permission "Physical activity". Sidekick starts to count at this moment. It has no steps from before, the same as for the exercises.
+- **Steps.** The step sensor of the phone counts all the time. Sidekick saves the value of the sensor when it opens, and in the background approximately every 15 minutes. The steps between two saved values are the difference.
+- **Runs.** Google's activity recognition tells Sidekick when the user starts and stops to run, also when Sidekick is closed. Runs shorter than 2 minutes do not count.
+- The card shows the steps today, the steps this week, a chart of the steps for each of the last 8 weeks, and the runs of this week.
+- Sidekick does not use Health Connect. Thus, Sidekick needs no other app, and the Play Store needs no Health Connect declaration.
+
 ## 5. Measure types
 
 Each card has one measure type.
@@ -174,6 +184,23 @@ CREATE TABLE settings (
   value TEXT NOT NULL
 );
 ```
+
+```sql
+CREATE TABLE step_samples (
+  id      INTEGER PRIMARY KEY NOT NULL,
+  at      INTEGER NOT NULL,       -- when Sidekick read the sensor
+  counter INTEGER NOT NULL,       -- the steps since the last start of the phone
+  boot    INTEGER NOT NULL        -- the time of the last start of the phone
+);
+
+CREATE TABLE run_events (
+  id   INTEGER PRIMARY KEY NOT NULL,
+  at   INTEGER NOT NULL,
+  kind TEXT NOT NULL              -- 'start' | 'end'
+);
+```
+
+The samples and the run events are the main data for the steps and the runs, the same as the logs for the exercises. The app calculates all the totals from them.
 
 The totals for one log are:
 

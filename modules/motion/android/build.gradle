@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.viveka.sidekick'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.motion"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+}
+
+dependencies {
+  // Google's activity recognition: it tells Sidekick when the user starts and stops to run.
+  implementation 'com.google.android.gms:play-services-location:21.3.0'
+}

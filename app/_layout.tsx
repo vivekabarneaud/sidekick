@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { init } from '../src/db';
+// This import also defines the background task for the steps. Keep it here.
+import { keepCounting } from '../src/steps';
 import { c } from '../src/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -23,6 +25,16 @@ export default function RootLayout() {
         setReady(true);
         void SplashScreen.hideAsync();
       });
+  }, []);
+
+  // Save the step count each time that the app opens or comes back to the front.
+  useEffect(() => {
+    const count = () => keepCounting().catch((e) => console.warn('Could not save the steps', e));
+    void count();
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') void count();
+    });
+    return () => sub.remove();
   }, []);
 
   if (!ready) return null;
