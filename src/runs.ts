@@ -16,7 +16,7 @@ const MAX_RUN = 4 * 60 * 60 * 1000;
 /** Shorter runs are usually an error of the detection, for example a run to catch a bus. */
 const MIN_RUN = 2 * 60 * 1000;
 
-async function ensureTable() {
+export async function ensureRunTable() {
   // The background task can run without the root layout. Thus, it makes the table itself.
   const d = await db();
   await d.execAsync(`
@@ -35,7 +35,7 @@ export async function saveRunEvents() {
   if (!Motion) return;
   const events = JSON.parse(Motion.takeRunEvents()) as RunEvent[];
   if (events.length === 0) return;
-  const d = await ensureTable();
+  const d = await ensureRunTable();
   await d.withTransactionAsync(async () => {
     for (const e of events) {
       await d.runAsync('INSERT INTO run_events (at, kind) VALUES (?, ?)', Math.round(e.at), e.kind);
@@ -48,7 +48,7 @@ export async function saveRunEvents() {
  * end. A run without an end yet (the user runs now) is not in the list.
  */
 export async function runsBetween(from: number, to: number): Promise<Run[]> {
-  const d = await ensureTable();
+  const d = await ensureRunTable();
   const events = await d.getAllAsync<RunEvent>(
     'SELECT at, kind FROM run_events WHERE at >= ? AND at < ? ORDER BY at',
     from,

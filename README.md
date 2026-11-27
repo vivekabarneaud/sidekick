@@ -43,3 +43,13 @@ The Android code is in `modules/motion`.
 **Runs.** Sidekick uses the activity recognition of Google Play services. It tells the Android code when the user starts and stops to run, also when Sidekick is closed. The Android code keeps these events until Sidekick saves them in the database. The same permission ("Physical activity") is necessary. Runs shorter than 2 minutes do not count.
 
 Sidekick does not use Health Connect.
+
+## Backup
+
+The settings page (the gear on the Totals tab) has the backup.
+
+- **Automatic backup.** Select a folder on the phone, for example "Documents/Sidekick". Sidekick writes a JSON file there when the data changes, and keeps the newest file of each of the last 3 days. The files stay when you remove the app.
+- **Restore.** Select a backup file. Sidekick adds the data that is not already there.
+
+Before you change from the development build to the Play Store version, make a backup. The two versions have different signatures, so you must remove the development build first. That deletes the data of the app.
+

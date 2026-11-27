@@ -1,7 +1,7 @@
 # Sidekick — plan for the first version
 
-Status: plan only. Nothing is built.
-Date: 18 November 2026.
+Status: sections 1 to 7 are built. Section 8 is the plan for the next versions.
+Date: 18 November 2026. Section 8 updated on 27 November 2026.
 
 ## 1. The problem
 
@@ -20,7 +20,8 @@ These rules apply to all parts of the app.
 2. **The app is kind.** The app never punishes the user.
    - No streaks that break.
    - No red numbers and no "you missed a day" messages.
-3. **The user competes only with their past.** The app never compares the user to other people or to "normal" values.
+   - A lost fight costs nothing (see section 8.8).
+3. **The user competes only with their past.** The app never compares the user to other people or to "normal" values. (A leaderboard is possible later, but only as an option. See section 8.10.)
 4. **The data stays on the phone.** No account and no server.
 
 ## 3. Platform and technology
@@ -213,9 +214,13 @@ The log is the main object. The app calculates all totals, charts, and (later) t
 
 These parts are not in the first version.
 
-### 8.1 Backup
+### 8.1 Backup (built on 27 November 2026)
 
-Use the backup code from Peckish again. Read `peckish/design/automatic-backup.md` before this step. This step has high priority after the first version, because the logs are the history of the user.
+- All the data goes into one JSON file: exercises, logs, settings, step samples, and run events. There are no photos, so the file is small.
+- **Automatic backup.** The user selects a folder one time (for example, "Documents/Sidekick"). Sidekick writes a new file there when the app goes to the background and from the background task, but only if the data changed. It keeps the newest file of each of the last 3 days with a backup. It never writes over a file, so a stopped write cannot destroy a good backup.
+- **The question.** After the first log, Sidekick asks one time for a folder. It never asks again. The settings page (the gear on the Totals tab) has the backup at all times. It shows the folder, the time of the last backup, and a problem if the last backup did not work.
+- **Restore.** The user selects a backup file. Sidekick adds only the data that is not already there. It never deletes or replaces data.
+- **Google Drive.** The Google Drive app does not let other apps select its folders. Thus, the folder is on the phone. Android's own backup (to the Google account of the user) also includes the database of Sidekick.
 
 ### 8.2 Glyphs for the library
 
@@ -224,18 +229,128 @@ Draw one SVG glyph for each exercise in the library. Use one simple style for al
 ### 8.3 The hero and the pet
 
 - The user is a hero. The pet trains with the hero and becomes stronger with the hero.
-- At the start, the user selects a pet: for example, a cute one or a badass one.
+- The story is short: "In this world, heroes train with their pets. Each exercise makes you both stronger."
+- At the start, the user selects one pet from 3 creatures: a kitty, a small dragon, and a puppy. The user gives it a name.
 - The pets are our own creatures. Do not copy Pokémon.
+- The pet changes its look at some ranks: one drawing for E and D, one for C and B, one for A and S. Thus, each creature needs 3 drawings at the start.
 - The pet never becomes sad or sick. It is always very happy to see the user.
-- The story is short. For example: "In this world, heroes train with their pets. Each exercise makes you both stronger."
+- The pet is also the mascot of the app. The app icon shows one of the creatures.
 
 ### 8.4 XP and ranks
 
-- The app calculates the XP from the logs. Thus, the XP also includes the logs from before this version.
-- The app gives more XP when the user does better than their own past results.
-- Ranks go from E to S. Do not copy names, characters, or art from Solo Leveling.
+**The XP is a fixed amount for each action.** It is the same for all users. Thus, the user can calculate it.
 
-### 8.5 A widget on the home screen
+| Action | XP |
+|---|---|
+| 1 rep | 1 XP × the value of the exercise |
+| 1 second held | 0.5 XP × the value of the exercise |
+| 1 rep with a hold | (1 XP + 0.5 XP for each second) × the value of the exercise |
+| 100 steps | 1 XP |
+| 1 minute of running | 3 XP |
+| A new best result for an exercise | 10 XP bonus |
+
+- **The value of an exercise.** Each entry in the library has a field `xp`, for example 1.5 for a push-up and 0.5 for arm circles. A custom exercise has the value 1. Add the field to `assets/library.json` (default 1).
+- **The balance.** Watch that the steps do not give much more XP than the exercises. Example: 5,000 steps give 50 XP, and 30 wall push-ups give 45 XP. Change the numbers if the balance is wrong.
+- **Calculation.** The app calculates the XP from the logs, the step samples, and the run events. The database does not keep the XP. Thus, the XP also includes the data from before this version, and a change of a number in the table changes all the XP correctly.
+
+**Ranks.** The ranks go from E to S. Do not copy names, characters, or art from Solo Leveling. These are the first values. Change them after some weeks of use.
+
+| Rank | Total XP | Approximate time to reach it, with 150 XP each day |
+|---|---|---|
+| E | 0 | at the start |
+| D | 1,500 | 2 weeks |
+| C | 6,000 | 6 weeks |
+| B | 15,000 | 3 months |
+| A | 35,000 | 8 months |
+| S | 70,000 | 15 months |
+
+**Levels.** The levels show the progress inside a rank. Level n starts at 50 × n² XP. Thus, level 5 starts at 1,250 XP, and level 37 starts at approximately 70,000 XP.
+
+### 8.5 Walk events and the journal
+
+This idea comes from the Pokéwalker: small invented stories occur while the user walks.
+
+- **When.** An event occurs approximately every 1,000 steps (a random number from 700 to 1,300). A run gives a bigger event at its end.
+- **When the user sees them.** The steps arrive in samples (see section 4.4). Thus, the app makes the events when it opens, for the steps since the last event. A maximum of 10 events for each day keeps the journal easy to read.
+- **The text.** The events are text in `assets/events.json`. Each event has a rank, a text, and an optional reward. The text can use the name of the pet. The app selects an event at random from the events of the current rank.
+- **The size grows with the rank.** Examples:
+  - E: "You and Mochi helped a grandmother to cross the street."
+  - D: "A cyclist lost his phone. Mochi ran after him and gave it back."
+  - C: "You and Mochi found a lost dog and took it home."
+  - B: "A storm hit the market. You and Mochi helped to save the stalls."
+  - A: "The bridge to the next town broke. You and Mochi guided all the people to the old road."
+  - S: "A dragon attacked the village. Mochi talked with it, and now it protects the village."
+- **The journal.** A page shows all the events, newest first. It is the story of the hero and the pet.
+
+### 8.6 Gold and cosmetics
+
+- **Gold.** The pet finds gold in some events (more gold at higher ranks). Quests and a new rank also give gold.
+- **The shop.** The user buys cosmetic items with gold:
+  - colors for the pet,
+  - accessories for the pet, for example a bowtie or a hat,
+  - color themes for the app.
+- **Rules.**
+  - The user never loses gold.
+  - The items are only cosmetic. They give no XP and no power.
+  - The prices are low. A normal user buys a small item after approximately one week.
+
+### 8.7 Quests
+
+- A quest is a small story with a target, for example: "Walk 2,000 steps with Mochi to bring a letter to the next town."
+- The targets can be steps, runs, or exercises.
+- The size of the target comes from the usual days of the user (the average of the last 14 days). Thus, a quest is always possible.
+- A quest has no end date and no penalty. The user can have 1 or 2 quests at the same time.
+- At the end, the quest gives XP and gold, and an event in the journal.
+
+### 8.8 Fights
+
+**Fights in the story.** Some events and quests have a fight against an invented monster. The power of the pet comes from its level. The pet can lose.
+
+**The shadow of the past.** The pet fights a "shadow" of itself from 4 weeks ago.
+
+- The power of the pet: the XP of the last 7 days.
+- The power of the shadow: the XP of the same 7 days, 4 weeks ago.
+- A small random part (approximately 10%) makes each fight different.
+- The fight is a short animation with some turns. The app shows the result after the animation.
+- The user can start one shadow fight each day.
+
+**A lost fight costs nothing.** The pet loses no gold and no XP. It gets a small amount of XP for the effort. The pet is never sad after a fight.
+
+### 8.9 Paid cosmetic items (last)
+
+The user can also buy a cosmetic item for real money, for example 1 €, if they do not have enough gold.
+
+- Each paid item is also available with gold. Money only makes it faster.
+- Only cosmetic items. No XP, no power, no advantage in fights.
+- No item with a random content ("loot box"). The user always sees what they buy.
+- No pressure: no offers for a limited time, and no messages that ask the user to buy.
+- **The work.** The purchases must use Google Play Billing. Google takes 15% of each sale. The Play Console needs a payments profile. The privacy policy and the data safety answers must say that Google handles the payments.
+
+### 8.10 Leaderboard (not now)
+
+A leaderboard and fights against the pets of other people are possible later, as an option. The user who does not want it never sees it.
+
+It is not in the plan now, because it needs:
+
+- a server, which must run and be paid for all the time,
+- a change of the rule "the data stays on the phone", of the privacy policy, and of the data safety answers,
+- a protection against fake steps,
+- a check of the pet names for rude words.
+
+Design the fights so that a server can add the pets of other people later without a big change. For example, a fight uses only the name, the creature, the level, and the power of a pet.
+
+### 8.11 The sequence
+
+1. The pet, the XP, and the ranks (sections 8.3 and 8.4).
+2. The walk events and the journal (section 8.5).
+3. Gold and cosmetics (section 8.6).
+4. Quests and fights (sections 8.7 and 8.8).
+5. Paid cosmetic items (section 8.9).
+6. If still wanted: the leaderboard (section 8.10).
+
+The backup (section 8.1) is built.
+
+### 8.12 A widget on the home screen
 
 The user logs an exercise without opening the app.
 
@@ -243,3 +358,8 @@ The user logs an exercise without opening the app.
 
 1. The hold input and the sets are settings (see section 5.1). The user will select the best values while they use the app.
 2. The week starts on Monday.
+3. The XP is a fixed amount for each action, the same for all users (see section 8.4). Decided on 27 November 2026.
+4. The pet can lose a fight. A lost fight costs nothing (see section 8.8).
+5. Paid cosmetic items are possible, but only as the last step, and each item is also available with gold (see section 8.9).
+6. No leaderboard for now (see section 8.10).
+7. Sidekick counts the steps and finds the runs itself. It does not use Health Connect (see section 4.4).

@@ -4,8 +4,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+// This import defines the background task. Keep it here.
+import '../src/background';
+import { backupIfChanged } from '../src/backup';
 import { init } from '../src/db';
-// This import also defines the background task for the steps. Keep it here.
 import { keepCounting } from '../src/steps';
 import { c } from '../src/theme';
 
@@ -27,12 +29,14 @@ export default function RootLayout() {
       });
   }, []);
 
-  // Save the step count each time that the app opens or comes back to the front.
+  // Save the step count each time that the app opens or comes back to the
+  // front. Make the backup when the app goes to the background.
   useEffect(() => {
     const count = () => keepCounting().catch((e) => console.warn('Could not save the steps', e));
     void count();
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'active') void count();
+      if (s === 'background') backupIfChanged().catch((e) => console.warn('Could not make the backup', e));
     });
     return () => sub.remove();
   }, []);

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CardImage } from '../../src/CardImage';
-import { deleteLog, listExercises, type Exercise, type ExerciseRow } from '../../src/db';
+import { KEY_ASKED, backupStatus, chooseFolder } from '../../src/backup';
+import { deleteLog, getSetting, listExercises, setSetting, type Exercise, type ExerciseRow } from '../../src/db';
 import { LogPanel, type Saved } from '../../src/LogPanel';
 import { DEFAULT_SETTINGS, loadSettings, type InputSettings } from '../../src/measure';
 import { c, CARD, GRID } from '../../src/theme';
@@ -14,6 +15,29 @@ function startOfToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d.getTime();
+}
+
+/**
+ * After the first log, Sidekick asks one time for a backup folder. Then there
+ * is data to protect. Sidekick never asks again. The settings page has the
+ * backup at all times.
+ */
+async function askForBackupOnce() {
+  if (await getSetting(KEY_ASKED)) return;
+  if ((await backupStatus()).folder) return;
+  await setSetting(KEY_ASKED, '1');
+  Alert.alert(
+    'Keep a copy of your data?',
+    'Your data is only on this phone. Sidekick can keep a copy in a folder that you select, for example in "Documents". The copy stays if you remove the app. Sidekick does not send your data to us.',
+    [
+      { text: 'Not now', style: 'cancel' },
+      {
+        text: 'Select a folder',
+        onPress: () => chooseFolder().catch((e) => Alert.alert('The backup did not work', String(e))),
+      },
+    ],
+  );
+  // The "Not now" answer: the settings page (on the Totals tab) has the backup.
 }
 
 /** The fast log page. The app opens on this page. */
@@ -61,6 +85,7 @@ export default function FastLog() {
     setOpen(null);
     showToast(saved);
     void load(false);
+    void askForBackupOnce();
   }
 
   async function undo() {

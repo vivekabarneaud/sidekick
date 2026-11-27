@@ -23,7 +23,8 @@ import { saveRunEvents } from './runs';
 
 export type Sample = { at: number; counter: number; boot: number };
 
-const TASK = 'sidekick-step-sample';
+/** The background task. It is defined in background.ts. */
+export const TASK = 'sidekick-step-sample';
 
 /** Two samples with a boot time closer than this come from the same start of the phone. */
 const SAME_BOOT = 5 * 60 * 1000;
@@ -38,7 +39,7 @@ export type StepsState = 'missing' | 'off' | 'on';
 // Android 9 and older do not ask for this permission. The sensor then works without it.
 const NEEDS_PERMISSION = Platform.OS === 'android' && Number(Platform.Version) >= 29;
 
-async function ensureTable() {
+export async function ensureStepTable() {
   // The background task can run without the root layout. Thus, it cannot
   // trust init() in db.ts, and makes the table itself.
   const d = await db();
@@ -88,7 +89,7 @@ export async function keepCounting() {
  * The steps, and the runs. The request for the runs stops after a restart
  * of the phone. Thus, we make it again each time.
  */
-async function sampleAll() {
+export async function sampleAll() {
   await sample();
   await Motion?.watchRuns();
   await saveRunEvents();
@@ -99,7 +100,7 @@ export async function sample() {
   if (!Motion) return;
   const value = await Motion.readSteps();
   if (!value) return;
-  const d = await ensureTable();
+  const d = await ensureStepTable();
   await d.runAsync(
     'INSERT INTO step_samples (at, counter, boot) VALUES (?, ?, ?)',
     Date.now(),
@@ -110,7 +111,7 @@ export async function sample() {
 
 /** The samples from "from" until now, plus the last sample before "from". */
 export async function samplesSince(from: number): Promise<Sample[]> {
-  const d = await ensureTable();
+  const d = await ensureStepTable();
   return d.getAllAsync<Sample>(
     `SELECT at, counter, boot FROM step_samples
      WHERE at >= COALESCE((SELECT MAX(at) FROM step_samples WHERE at < ?), 0)
@@ -120,7 +121,7 @@ export async function samplesSince(from: number): Promise<Sample[]> {
 }
 
 export async function firstSampleAt(): Promise<number | null> {
-  const d = await ensureTable();
+  const d = await ensureStepTable();
   const r = await d.getFirstAsync<{ at: number | null }>('SELECT MIN(at) AS at FROM step_samples');
   return r?.at ?? null;
 }
@@ -128,10 +129,14 @@ export async function firstSampleAt(): Promise<number | null> {
 /** The steps between two samples. */
 function stepsBetweenSamples(a: Sample, b: Sample): number {
   const sameBoot = Math.abs(a.boot - b.boot) < SAME_BOOT && b.counter >= a.counter;
+  if (sameBoot) return b.counter - a.counter;
   // After a new start of the phone, the sensor starts again from 0. Then all
   // the steps of b come after the start. The steps between a and the start
   // of the phone are lost.
-  return sameBoot ? b.counter - a.counter : b.counter;
+  if (b.boot > a.at) return b.counter;
+  // The phone of b started before a. Then a and b come from two different
+  // phones (a backup from an old phone). We do not know the steps between them.
+  return 0;
 }
 
 /**
@@ -151,17 +156,3 @@ export function stepsIn(samples: Sample[], from: number, to: number): number {
   }
   return Math.round(total);
 }
-
-// The background task. Android runs it approximately every 15 minutes, also
-// when Sidekick is closed. This file must be imported when the app starts
-// (see app/_layout.tsx), so that the task exists also for a run in the
-// background.
-TaskManager.defineTask(TASK, async () => {
-  try {
-    await sampleAll();
-    return BackgroundTask.BackgroundTaskResult.Success;
-  } catch (e) {
-    console.warn('Could not save the steps', e);
-    return BackgroundTask.BackgroundTaskResult.Failed;
-  }
-});

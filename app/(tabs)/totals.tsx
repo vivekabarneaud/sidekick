@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CardImage } from '../../src/CardImage';
 import { StepsSection } from '../../src/StepsSection';
@@ -58,6 +59,18 @@ export default function TotalsPage() {
     <View style={[s.page, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <Text style={s.title}>Totals</Text>
+        <Pressable
+          onPress={() => router.push('/settings')}
+          style={({ pressed }) => [s.gear, pressed && { opacity: 0.6 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Settings and backup"
+          hitSlop={8}
+        >
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={c.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <Circle cx={12} cy={12} r={3} />
+            <Path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </Svg>
+        </Pressable>
       </View>
 
       {data ? (
@@ -221,7 +234,16 @@ function Small({ label, value }: { label: string; value: string }) {
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: c.ground },
-  header: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 4, minHeight: 64, justifyContent: 'center' },
+  header: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 4,
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  gear: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 30, fontWeight: '800', color: c.ink },
   body: { padding: 14, gap: 14 },
   section: { backgroundColor: c.surface, borderRadius: 20, padding: 16, gap: 12 },
