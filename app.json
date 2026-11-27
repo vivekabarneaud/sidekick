@@ -6,19 +6,32 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "android": {
       "package": "com.viveka.sidekick",
-      "edgeToEdgeEnabled": true,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
+      ],
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.READ_HEALTH_DATA_HISTORY"
       ]
     },
     "plugins": [
       "expo-router",
       "expo-sqlite",
       "expo-status-bar",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "./plugins/withPrivacyPolicy.js",
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

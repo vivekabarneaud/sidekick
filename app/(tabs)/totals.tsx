@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CardImage } from '../../src/CardImage';
+import { StepsSection } from '../../src/StepsSection';
 import { longDate, startOfDay, startOfMonth } from '../../src/dates';
 import { allLogs, listExercises, type ExerciseRow, type Log } from '../../src/db';
 import { formatSeconds, type Measure } from '../../src/measure';
@@ -60,28 +61,31 @@ export default function TotalsPage() {
       </View>
 
       {data ? (
-        data.logs.length === 0 ? (
-          <View style={s.empty}>
-            <Text style={s.emptyTitle}>Nothing here yet</Text>
-            <Text style={s.emptyBody}>
-              Log an exercise on the first page. Your totals and your progress show here.
-            </Text>
-          </View>
-        ) : (
-          <ScrollView contentContainerStyle={[s.body, { paddingBottom: 32 }]}>
-            <Overview data={data} />
-            {data.exercises
-              .filter((e) => data.logs.some((l) => l.exercise_id === e.id))
-              .map((e) => (
-                <ExerciseTotals
-                  key={e.id}
-                  exercise={e}
-                  logs={data.logs.filter((l) => l.exercise_id === e.id)}
-                  now={data.now}
-                />
-              ))}
-          </ScrollView>
-        )
+        <ScrollView contentContainerStyle={[s.body, { paddingBottom: 32 }]}>
+          <StepsSection />
+          {data.logs.length === 0 ? (
+            <View style={s.empty}>
+              <Text style={s.emptyTitle}>No exercises yet</Text>
+              <Text style={s.emptyBody}>
+                Log an exercise on the first page. Your totals and your progress show here.
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Overview data={data} />
+              {data.exercises
+                .filter((e) => data.logs.some((l) => l.exercise_id === e.id))
+                .map((e) => (
+                  <ExerciseTotals
+                    key={e.id}
+                    exercise={e}
+                    logs={data.logs.filter((l) => l.exercise_id === e.id)}
+                    now={data.now}
+                  />
+                ))}
+            </>
+          )}
+        </ScrollView>
       ) : null}
     </View>
   );
@@ -236,7 +240,7 @@ const s = StyleSheet.create({
   smallValue: { fontSize: 17, fontWeight: '700', color: c.ink },
   best: { fontSize: 14, color: c.ink },
   chartTitle: { fontSize: 13, color: c.muted, marginTop: 4 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 },
+  empty: { alignItems: 'center', paddingHorizontal: 32, paddingVertical: 48, gap: 12 },
   emptyTitle: { fontSize: 22, fontWeight: '700', color: c.ink },
   emptyBody: { fontSize: 16, lineHeight: 24, color: c.muted, textAlign: 'center' },
 });
